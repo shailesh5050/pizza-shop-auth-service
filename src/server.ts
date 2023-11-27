@@ -7,7 +7,7 @@ const startServer = () => {
             logger.info(`Server is running on port ${Config.PORT}`);
         });
     } catch (error) {
-        if(error instanceof Error) {
+        if (error instanceof Error) {
             logger.error(`Error: ${error.message}`);
 
             process.exit(1);
