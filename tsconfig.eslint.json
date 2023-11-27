@@ -1,0 +1,10 @@
+// tsconfig.eslint.json
+{
+    "include": [
+      ".eslintrc.js"
+    ],
+    "compilerOptions": {
+      // other compiler options...
+    }
+  }
+  
