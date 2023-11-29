@@ -4,7 +4,7 @@ const app = express();
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 app.get('/', async (_req: Request, res: Response) => {
-    res.send('Hello world!');
+    res.status(200).send('Hello world!');
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
