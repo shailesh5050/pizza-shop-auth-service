@@ -29,5 +29,5 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-app.use('/auth',authRouter)
+app.use('/auth', authRouter);
 export default app;
