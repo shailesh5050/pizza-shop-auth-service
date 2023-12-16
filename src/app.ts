@@ -1,5 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import logger from './config/logger';
+import authRouter from './routes/auth';
+import 'reflect-metadata';
 const app = express();
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -27,4 +29,5 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     }
 });
 
+app.use('/auth',authRouter)
 export default app;
