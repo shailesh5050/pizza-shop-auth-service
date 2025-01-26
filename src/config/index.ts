@@ -4,7 +4,7 @@ import path from 'path';
 // Load environment variables from the correct .env file
 const envPath = path.join(
     __dirname,
-    `../../.env.${process.env.NODE_ENV || 'dev'}`
+    `../../.env.${process.env.NODE_ENV || 'dev'}`,
 );
 config({ path: envPath });
 

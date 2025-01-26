@@ -8,8 +8,8 @@ const userRepository = AppDataSource.getRepository(User);
 const authService = new UserService(userRepository);
 const authController = new AuthController(authService);
 
-
-
-router.post('/register', (req, res) => authController.register(req, res));
+router.post('/register', (req, res, next) => {
+    authController.register(req, res).catch(next);
+});
 
 export default router;

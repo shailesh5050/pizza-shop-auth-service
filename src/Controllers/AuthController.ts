@@ -1,10 +1,6 @@
-import { Request, Response } from 'express';
-import { AppDataSource } from '../config/data-source';
-import { User } from '../entity/User';
-import  RegisterUserRequest from '../types';
+import { Response } from 'express';
+import RegisterUserRequest from '../types';
 import { UserService } from '../services/UserService';
-
-
 
 export class AuthController {
     userService: UserService;
@@ -31,14 +27,23 @@ export class AuthController {
         }
 
         try {
-            await this.userService.create({ firstName, lastName, email, password });
+            await this.userService.create({
+                firstName,
+                lastName,
+                email,
+                password,
+            });
             return res.status(200).json({
                 message: 'register',
-                user: { email }
+                user: { email },
             });
-        } catch (error: any) {
-            if (error.code === '23505') { // PostgreSQL unique violation error code
-                return res.status(409).json({ error: 'Email already registered' });
+        } catch (error) {
+            const err = error as { code?: string };
+            if (err.code === '23505') {
+                // PostgreSQL unique violation error code
+                return res
+                    .status(409)
+                    .json({ error: 'Email already registered' });
             }
             return res.status(500).json({ error: 'Internal server error' });
         }

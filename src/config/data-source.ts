@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { User } from '../entity/User';
 import { Config } from './index';
+import logger from './logger';
 
 export const AppDataSource = new DataSource({
     // Database configuration
@@ -23,8 +24,8 @@ export const AppDataSource = new DataSource({
 // Initialize database connection
 AppDataSource.initialize()
     .then(() => {
-        console.log('Database connection established successfully');
+        logger.info('Database connection established successfully');
     })
     .catch((error) => {
-        console.error('Error connecting to database:', error);
+        logger.error('Error connecting to database:', error);
     });
