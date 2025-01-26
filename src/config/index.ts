@@ -1,18 +1,20 @@
 import { config } from 'dotenv';
 import path from 'path';
-config({
-    path: path.join(__dirname, `../../.env/${process.env.NODE_ENV}.env`),
-});
 
-const { PORT, NODE_ENV, DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD } =
-    process.env;
+// Load environment variables from the correct .env file
+const envPath = path.join(
+    __dirname,
+    `../../.env.${process.env.NODE_ENV || 'dev'}`
+);
+config({ path: envPath });
 
+// Export Config object with default values
 export const Config = {
-    PORT,
-    NODE_ENV,
-    DB_HOST,
-    DB_PORT,
-    DB_USERNAME,
-    DB_PASSWORD,
-    DB_NAME,
+    PORT: process.env.PORT || 5501,
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    DB_HOST: process.env.DB_HOST || 'localhost',
+    DB_PORT: process.env.DB_PORT || 5432,
+    DB_USERNAME: process.env.DB_USERNAME || 'root',
+    DB_PASSWORD: process.env.DB_PASSWORD || 'root',
+    DB_NAME: process.env.DB_NAME || 'mernstack_auth_service_test',
 };

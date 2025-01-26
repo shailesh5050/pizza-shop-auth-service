@@ -1,93 +1,118 @@
 import request from 'supertest';
 import app from '../../src/app';
-import { it } from 'node:test';
+import { describe, it, beforeAll, afterAll, expect } from '@jest/globals';
+import { DataSource } from 'typeorm';
+import { truncateTables } from '../utils';
+import { User } from '../../src/entity/User';
+import { Config } from '../../src/config';
 
 describe('POST /auth/register', () => {
-    const validUserData = {
+    let connection: DataSource;
+
+    beforeAll(async () => {
+        try {
+            connection = new DataSource({
+                type: 'postgres',
+                host: Config.DB_HOST,
+                port: Number(Config.DB_PORT),
+                username: Config.DB_USERNAME,
+                password: Config.DB_PASSWORD,
+                database: Config.DB_NAME,
+                entities: [User],
+                logging: false,
+                synchronize: true,
+                migrations: [],
+                subscribers: [],
+            });
+            await connection.initialize();
+            await connection.synchronize(true); // Force synchronize the database schema
+        } catch (error) {
+            console.error('Error initializing database:', error);
+            throw error;
+        }
+    });
+
+    afterAll(async () => {
+        await truncateTables(connection);
+        await connection.destroy();
+    });
+
+    const createUser = (overrides = {}) => ({
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@gmail.com',
         password: '123456',
-    };
+        ...overrides,
+    });
 
     describe('Given a valid request', () => {
-        it('Should return a 200 status code', async () => {
+        it('Should return a 200 status code and persist the user', async () => {
+            const userData = createUser();
             const response = await request(app)
                 .post('/auth/register')
-                .send(validUserData);
-            expect(response.status).toBe(200);
-        });
+                .send(userData);
 
-        it('Should return a valid JSON response body', async () => {
-            const response = await request(app)
-                .post('/auth/register')
-                .send(validUserData);
+            // Validate response
+            expect(response.status).toBe(200);
             expect(response.body).toMatchObject({
                 message: 'register',
+                user: { email: userData.email },
             });
-        });
 
-        it('Should persist the user in the database', async () => {
-            const response = await request(app)
-                .post('/auth/register')
-                .send(validUserData);
-            // Check response type
-            expect(response.headers['content-type']).toEqual(
-                expect.stringContaining('json'),
-            );
-
-            // Optionally, mock your database function and ensure it's called
-            // Example: expect(database.saveUser).toHaveBeenCalledWith(validUserData);
+            // Validate persistence
+            const userRepo = connection.getRepository(User);
+            const user = await userRepo.findOne({
+                where: { email: userData.email },
+            });
+            expect(user).toBeDefined();
+            expect(user?.firstName).toBe(userData.firstName);
+            expect(user?.lastName).toBe(userData.lastName);
+            expect(user?.email).toBe(userData.email);
         });
     });
 
     describe('Given an invalid request', () => {
         it('Should return 400 if required fields are missing', async () => {
-            const invalidData = { email: 'john@gmail.com' }; // Missing required fields
             const response = await request(app)
                 .post('/auth/register')
-                .send(invalidData);
+                .send({ email: 'john@gmail.com' });
             expect(response.status).toBe(400);
+            expect(response.body).toMatchObject({
+                error: 'Required fields missing',
+            });
         });
 
         it('Should return 400 for invalid email format', async () => {
-            const invalidEmailData = {
-                ...validUserData,
-                email: 'not-an-email',
-            };
             const response = await request(app)
                 .post('/auth/register')
-                .send(invalidEmailData);
+                .send(createUser({ email: 'invalid-email' }));
             expect(response.status).toBe(400);
+            expect(response.body).toMatchObject({
+                error: 'Invalid email format',
+            });
         });
 
         it('Should return 400 for weak passwords', async () => {
-            const weakPasswordData = { ...validUserData, password: '123' }; // Too short
             const response = await request(app)
                 .post('/auth/register')
-                .send(weakPasswordData);
+                .send(createUser({ password: '123' }));
             expect(response.status).toBe(400);
+            expect(response.body).toMatchObject({
+                error: 'Password too weak',
+            });
         });
 
         it('Should return 409 if email is already registered', async () => {
-            await request(app).post('/auth/register').send(validUserData); // Register first
+            const userData = createUser();
+            await request(app).post('/auth/register').send(userData); // Register first
+
             const response = await request(app)
                 .post('/auth/register')
-                .send(validUserData); // Register again
+                .send(userData); // Attempt to register again
             expect(response.status).toBe(409);
+            expect(response.body).toMatchObject({
+                error: 'Email already registered',
+            });
         });
-    });
-
-    it('Should persist the user in the database', async () => {
-        const response = await request(app)
-            .post('/auth/register')
-            .send(validUserData);
-        // Check response type
-        expect(response.headers['content-type']).toEqual(
-            expect.stringContaining('json'),
-        );
-
-        // Optionally, mock your database function and ensure it's called
-        // Example: expect(database.saveUser).toHaveBeenCalledWith(validUserData);
     });
 });

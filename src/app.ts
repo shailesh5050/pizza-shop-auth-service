@@ -4,6 +4,7 @@ import authRouter from './routes/auth';
 import 'reflect-metadata';
 
 const app = express();
+app.use(express.json());
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 app.get('/', async (_req: Request, res: Response) => {
