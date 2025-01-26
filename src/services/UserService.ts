@@ -12,7 +12,9 @@ export class UserService {
         password,
     }: UserData): Promise<User> {
         try {
-            const existingUser = await this.userRepository.findOne({ where: { email } });
+            const existingUser = await this.userRepository.findOne({
+                where: { email },
+            });
             if (existingUser) {
                 throw createHttpError(409, 'Email already registered');
             }

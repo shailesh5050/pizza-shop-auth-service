@@ -7,10 +7,10 @@ import logger from '../config/logger';
 const router = express.Router();
 const userRepository = AppDataSource.getRepository(User);
 const authService = new UserService(userRepository);
-const authController = new AuthController(authService,logger);
+const authController = new AuthController(authService, logger);
 
 router.post('/register', (req, res, next) => {
-    authController.register(req, res,next).catch(next);
+    authController.register(req, res, next).catch(next);
 });
 
 export default router;
