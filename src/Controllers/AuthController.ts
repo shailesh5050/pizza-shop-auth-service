@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import RegisterUserRequest from '../types';
 import { UserService } from '../services/UserService';
 import { Logger } from 'winston';
+import { Roles } from '../constants';
 
 export class AuthController {
     userService: UserService;
@@ -40,6 +41,7 @@ export class AuthController {
                 lastName,
                 email,
                 password,
+                role: Roles.CUSTOMER,
             });
             this.logger.info(`User ${user.id} registered successfully`);
             res.status(200).json({

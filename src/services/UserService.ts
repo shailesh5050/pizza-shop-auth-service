@@ -2,6 +2,7 @@ import { UserData } from '../types';
 import { User } from '../entity/User';
 import { Repository } from 'typeorm';
 import createHttpError from 'http-errors';
+import { Roles } from '../constants';
 
 export class UserService {
     constructor(private userRepository: Repository<User>) {}
@@ -24,6 +25,7 @@ export class UserService {
                 lastName,
                 email,
                 password,
+                role: Roles.CUSTOMER,
             });
             return await this.userRepository.save(user);
         } catch (error) {
