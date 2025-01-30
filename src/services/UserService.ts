@@ -3,6 +3,7 @@ import { User } from '../entity/User';
 import { Repository } from 'typeorm';
 import createHttpError from 'http-errors';
 import { Roles } from '../constants';
+import bcrypt from "bcryptjs";
 
 export class UserService {
     constructor(private userRepository: Repository<User>) {}
@@ -13,6 +14,7 @@ export class UserService {
         password,
     }: UserData): Promise<User> {
         try {
+            const hashedPassword = await bcrypt.hash(password, 8);
             const existingUser = await this.userRepository.findOne({
                 where: { email },
             });
@@ -24,7 +26,7 @@ export class UserService {
                 firstName,
                 lastName,
                 email,
-                password,
+                password: hashedPassword,
                 role: Roles.CUSTOMER,
             });
             return await this.userRepository.save(user);
