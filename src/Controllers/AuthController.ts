@@ -3,7 +3,6 @@ import RegisterUserRequest from '../types';
 import { UserService } from '../services/UserService';
 import { Logger } from 'winston';
 import { Roles } from '../constants';
-
 export class AuthController {
     userService: UserService;
     constructor(
@@ -19,21 +18,6 @@ export class AuthController {
     ) {
         const { firstName, lastName, email, password } = req.body;
         this.logger.debug(`Registering user ${email}`);
-        // Validate required fields
-        if (!firstName || !lastName || !email || !password) {
-            return res.status(400).json({ error: 'Required fields missing' });
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
-        }
-
-        // Validate password strength
-        if (password.length < 6) {
-            return res.status(400).json({ error: 'Password too weak' });
-        }
 
         try {
             const user = await this.userService.create({
