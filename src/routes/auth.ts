@@ -9,8 +9,12 @@ const userRepository = AppDataSource.getRepository(User);
 const authService = new UserService(userRepository);
 const authController = new AuthController(authService, logger);
 import { registerValidator } from '../validators/auth.validator';
-router.post('/register', registerValidator, (req:Request, res:Response, next:NextFunction) => {
-    authController.register(req, res, next).catch(next);
-});
+router.post(
+    '/register',
+    registerValidator,
+    (req: Request, res: Response, next: NextFunction) => {
+        authController.register(req, res, next).catch(next);
+    },
+);
 
 export default router;
