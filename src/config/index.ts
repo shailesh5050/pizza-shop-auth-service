@@ -14,7 +14,8 @@ export const Config = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     DB_HOST: process.env.DB_HOST || 'localhost',
     DB_PORT: process.env.DB_PORT || 5432,
-    DB_USERNAME: process.env.DB_USERNAME || 'root',
+    DB_USERNAME: process.env.DB_USER || 'root', // Changed from DB_USERNAME to DB_USER
     DB_PASSWORD: process.env.DB_PASSWORD || 'root',
     DB_NAME: process.env.DB_NAME || 'mernstack_auth_service_test',
+    REFRESH_TOKEN: process.env.REFRESH_TOKEN, // Added REFRESH_TOKEN
 };
