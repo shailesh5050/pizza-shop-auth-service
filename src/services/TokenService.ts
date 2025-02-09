@@ -4,8 +4,6 @@ import path from 'path';
 import createHttpError from 'http-errors';
 import { Config } from '../config';
 
-
-
 export class TokenService {
     generateAccessToken(payload: JwtPayload) {
         let privateKey: string;
@@ -15,20 +13,19 @@ export class TokenService {
                 'utf-8',
             );
         } catch (error) {
-            
             createHttpError(500, 'Error reading private key file');
             throw error;
             return;
         }
-        const  accessToken = sign(payload, privateKey, {
+        const accessToken = sign(payload, privateKey, {
             expiresIn: '1h',
             algorithm: 'RS256',
             issuer: 'auth-service',
         });
-        return accessToken
+        return accessToken;
     }
 
-    generateRefreshToken(payload:JwtPayload){
+    generateRefreshToken(payload: JwtPayload) {
         const refreshToken = sign(payload, Config.REFRESH_TOKEN!, {
             expiresIn: '1y',
             algorithm: 'HS256',

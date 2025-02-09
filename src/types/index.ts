@@ -11,5 +11,4 @@ interface RegisterUserRequest extends Request {
     body: UserData;
 }
 
-
 export default RegisterUserRequest;

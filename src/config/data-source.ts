@@ -17,7 +17,7 @@ export const AppDataSource = new DataSource({
     // dont use synchronize in production  - otherwise you can lose production data
     synchronize: Config.NODE_ENV === 'dev' || Config.NODE_ENV === 'test',
     logging: false,
-    entities: [User,RefreshToken],
+    entities: [User, RefreshToken],
     migrations: [],
     subscribers: [],
 });

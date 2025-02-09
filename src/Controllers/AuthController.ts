@@ -3,7 +3,7 @@ import RegisterUserRequest from '../types';
 import { UserService } from '../services/UserService';
 import { Logger } from 'winston';
 import { Roles } from '../constants';
-import { JwtPayload} from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
 import { AppDataSource } from '../config/data-source';
 import { TokenService } from '../services/TokenService';
 export class AuthController {
@@ -11,7 +11,7 @@ export class AuthController {
     constructor(
         userService: UserService,
         private logger: Logger,
-        private tokenService : TokenService,
+        private tokenService: TokenService,
     ) {
         this.userService = userService;
     }
@@ -38,15 +38,19 @@ export class AuthController {
                 email: user.email,
                 role: user.role,
             };
-            const accessToken = this.tokenService.generateAccessToken(payload); 
-            
-            const newRefreshToken = await AppDataSource.getRepository('RefreshToken').save({
+            const accessToken = this.tokenService.generateAccessToken(payload);
+
+            const newRefreshToken = await AppDataSource.getRepository(
+                'RefreshToken',
+            ).save({
                 user: user,
                 expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year in milliseconds
             });
 
-
-           const refreshToken = this.tokenService.generateRefreshToken({...payload, id: String(newRefreshToken.id)})
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: String(newRefreshToken.id),
+            });
             res.cookie('refreshToken', refreshToken, {
                 domain: 'localhost',
                 maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
