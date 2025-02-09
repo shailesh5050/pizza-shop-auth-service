@@ -5,6 +5,9 @@ import { DataSource } from 'typeorm';
 import { truncateTables } from '../utils';
 import { User } from '../../src/entity/User';
 import { Config } from '../../src/config';
+import { verify } from 'jsonwebtoken';
+import { readFileSync } from 'fs';
+import path from 'path';
 
 describe('POST /auth/register', () => {
     let connection: DataSource;
@@ -69,6 +72,62 @@ describe('POST /auth/register', () => {
             expect(user?.lastName).toBe(userData.lastName);
             expect(user?.email).toBe(userData.email);
         });
+
+        it('Should set proper cookies with correct attributes', async () => {
+            const userData = createUser({ email: 'cookie.test@gmail.com' });
+            const response = await request(app)
+                .post('/auth/register')
+                .send(userData);
+
+            const cookies = response.headers['set-cookie'];
+            expect(cookies).toBeDefined();
+            expect(cookies.length).toBe(2);
+
+            // Validate access token cookie
+            const accessTokenCookie = (cookies as unknown as string[]).find(c => c.startsWith('accessToken='));
+            expect(accessTokenCookie).toBeDefined();
+            expect(accessTokenCookie).toContain('Domain=localhost');
+            expect(accessTokenCookie).toContain('SameSite=Strict');
+            expect(accessTokenCookie).toContain('Max-Age=3600');
+
+            // Validate refresh token cookie
+            const refreshTokenCookie = (cookies as unknown as string[]).find(c => c.startsWith('refreshToken='));
+            expect(refreshTokenCookie).toBeDefined();
+            expect(refreshTokenCookie).toContain('Domain=localhost');
+            expect(refreshTokenCookie).toContain('SameSite=Strict');
+            expect(refreshTokenCookie).toContain('Max-Age=31536000');
+        });
+
+        it('Should generate valid JWT tokens', async () => {
+            const userData = createUser({ email: 'token.test@gmail.com' });
+            const response = await request(app)
+                .post('/auth/register')
+                .send(userData);
+
+            const cookies = response.headers['set-cookie'];
+            const accessTokenCookie = (cookies as unknown as string[]).find(c => c.startsWith('accessToken='));
+            const refreshTokenCookie = (cookies as unknown as string[]).find(c => c.startsWith('refreshToken='));
+
+            // Extract tokens
+            const accessToken = accessTokenCookie?.split(';')[0].split('=')[1];
+            const refreshToken = refreshTokenCookie?.split(';')[0].split('=')[1];
+
+            // Verify access token
+            const publicKey = readFileSync(
+                path.join(__dirname, '../../certs/public.pem'),
+                'utf-8'
+            );
+            const decodedAccessToken = verify(accessToken!, publicKey);
+            expect(decodedAccessToken).toBeDefined();
+            expect((decodedAccessToken as { email: string }).email).toBe(userData.email);
+            expect((decodedAccessToken as { role: string }).role).toBe('customer');
+
+            // Verify refresh token
+            const decodedRefreshToken = verify(refreshToken!, Config.REFRESH_TOKEN!);
+            expect(decodedRefreshToken).toBeDefined();
+            expect((decodedRefreshToken as { email: string }).email).toBe(userData.email);
+            expect((decodedRefreshToken as { role: string }).role).toBe('customer');
+        });
     });
 
     describe('Given an invalid request', () => {
@@ -113,6 +172,21 @@ describe('POST /auth/register', () => {
             expect(response.body).toMatchObject({
                 error: 'Email already registered',
             });
+        });
+
+        it('Should handle database connection errors gracefully', async () => {
+            // Temporarily break the database connection
+            await connection.destroy();
+
+            const response = await request(app)
+                .post('/auth/register')
+                .send(createUser({ email: 'db.error@test.com' }));
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty('error');
+
+            // Restore the connection for other tests
+            await connection.initialize();
         });
     });
 });

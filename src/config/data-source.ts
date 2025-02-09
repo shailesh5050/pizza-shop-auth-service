@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { User } from '../entity/User';
 import { Config } from './index';
 import logger from './logger';
+import { RefreshToken } from '../entity/RefreshToken';
 
 export const AppDataSource = new DataSource({
     // Database configuration
@@ -16,7 +17,7 @@ export const AppDataSource = new DataSource({
     // dont use synchronize in production  - otherwise you can lose production data
     synchronize: Config.NODE_ENV === 'dev' || Config.NODE_ENV === 'test',
     logging: false,
-    entities: [User],
+    entities: [User,RefreshToken],
     migrations: [],
     subscribers: [],
 });
