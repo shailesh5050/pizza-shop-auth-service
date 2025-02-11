@@ -40,7 +40,6 @@ export class AuthController {
             const accessToken = this.tokenService.generateAccessToken(payload);
             const refreshToken = this.tokenService.persistRefreshToken(user);
 
-
             const newrefreshToken = this.tokenService.generateRefreshToken({
                 ...payload,
                 id: String((await refreshToken).id),
