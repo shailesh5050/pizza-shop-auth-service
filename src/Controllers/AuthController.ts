@@ -4,7 +4,6 @@ import { UserService } from '../services/UserService';
 import { Logger } from 'winston';
 import { Roles } from '../constants';
 import { JwtPayload } from 'jsonwebtoken';
-import { AppDataSource } from '../config/data-source';
 import { TokenService } from '../services/TokenService';
 export class AuthController {
     userService: UserService;
@@ -39,19 +38,14 @@ export class AuthController {
                 role: user.role,
             };
             const accessToken = this.tokenService.generateAccessToken(payload);
+            const refreshToken = this.tokenService.persistRefreshToken(user);
 
-            const newRefreshToken = await AppDataSource.getRepository(
-                'RefreshToken',
-            ).save({
-                user: user,
-                expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year in milliseconds
-            });
 
-            const refreshToken = this.tokenService.generateRefreshToken({
+            const newrefreshToken = this.tokenService.generateRefreshToken({
                 ...payload,
-                id: String(newRefreshToken.id),
+                id: String((await refreshToken).id),
             });
-            res.cookie('refreshToken', refreshToken, {
+            res.cookie('refreshToken', newrefreshToken, {
                 domain: 'localhost',
                 maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
                 sameSite: 'strict',
