@@ -2,7 +2,7 @@ import app from './app';
 import { Config } from './config';
 import { AppDataSource } from './config/data-source';
 import logger from './config/logger';
-const startServer = async() => {
+const startServer = async () => {
     try {
         await AppDataSource.initialize();
         logger.info('Database connected');
@@ -18,4 +18,11 @@ const startServer = async() => {
     }
 };
 
-startServer();
+startServer().catch((err: unknown) => {
+    if (err instanceof Error) {
+        logger.error(`Failed to start server: ${err.message}`);
+    } else {
+        logger.error('An unknown error occurred while starting the server');
+    }
+    process.exit(1);
+});

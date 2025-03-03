@@ -4,7 +4,10 @@ import { AppDataSource } from '../config/data-source';
 import { User } from '../entity/User';
 import { UserService } from '../services/UserService';
 import { TokenService } from '../services/TokenService';
-import { registerValidator,loginValidator } from '../validators/auth.validator';
+import {
+    registerValidator,
+    loginValidator,
+} from '../validators/auth.validator';
 import logger from '../config/logger';
 import { RefreshToken } from '../entity/RefreshToken';
 
@@ -22,8 +25,12 @@ router.post(
     },
 );
 
-router.post('/login',loginValidator, (req: Request, res: Response, next: NextFunction) => {
-    authController.login(req, res, next).catch(next);
-});
+router.post(
+    '/login',
+    loginValidator,
+    (req: Request, res: Response, next: NextFunction) => {
+        authController.login(req, res, next).catch(next);
+    },
+);
 
 export default router;

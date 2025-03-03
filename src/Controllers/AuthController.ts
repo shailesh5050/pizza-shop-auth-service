@@ -141,6 +141,4 @@ export class AuthController {
             return;
         }
     }
-
-
 }
