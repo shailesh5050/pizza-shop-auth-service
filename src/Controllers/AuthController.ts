@@ -76,4 +76,71 @@ export class AuthController {
             return;
         }
     }
+
+    async login(req: RegisterUserRequest, res: Response, next: NextFunction) {
+        const { email, password } = req.body;
+        this.logger.debug(`Logging in user ${email}`);
+
+        try {
+            const user = await this.userService.findByEmail(email);
+            if (!user) {
+                this.logger.warn(`User ${email} not found`);
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            const isPasswordValid = await this.userService.comparePassword(
+                password,
+                user.password,
+            );
+            if (!isPasswordValid) {
+                this.logger.warn(`Invalid password for user ${email}`);
+                return res.status(401).json({ error: 'Invalid password' });
+            }
+
+            const payload: JwtPayload = {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            };
+            const accessToken = this.tokenService.generateAccessToken(payload);
+            const refreshToken = this.tokenService.persistRefreshToken(user);
+
+            const newrefreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: String((await refreshToken).id),
+            });
+            res.cookie('refreshToken', newrefreshToken, {
+                domain: 'localhost',
+                maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
+                sameSite: 'strict',
+            });
+            res.cookie('accessToken', accessToken, {
+                domain: 'localhost',
+                maxAge: 3600000,
+                sameSite: 'strict',
+            });
+
+            res.status(200).json({
+                message: 'Login successfully',
+                user: { email },
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                if ('status' in error) {
+                    const httpError = error as Error & { status: number };
+                    return res
+                        .status(httpError.status)
+                        .json({ error: httpError.message });
+                }
+                this.logger.error('Login error:', error);
+                next(error);
+                return;
+            }
+            this.logger.error('Unknown login error');
+            next(new Error('An unexpected error occurred'));
+            return;
+        }
+    }
+
+
 }

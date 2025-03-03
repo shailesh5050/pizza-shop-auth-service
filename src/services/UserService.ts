@@ -37,4 +37,32 @@ export class UserService {
             throw createHttpError(500, 'Failed to create user in the database');
         }
     }
+
+    async findByEmail(email: string): Promise<User | null> {
+        try {
+            return await this.userRepository.findOne({ where: { email } });
+        } catch (error) {
+            if (error instanceof Error && 'status' in error) {
+                throw error;
+            }
+            throw createHttpError(500, 'Failed to find user in the database');
+        }
+    }
+
+    async comparePassword(
+        password: string,
+        hashedPassword: string,
+    ): Promise<boolean> {
+        try {
+            return await bcrypt.compare(password, hashedPassword);
+        } catch (error) {
+            if (error instanceof Error && 'status' in error) {
+                throw error;
+            }
+            throw createHttpError(
+                500,
+                'Failed to compare password with hashed password',
+            );
+        }
+    }
 }
